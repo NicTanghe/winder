@@ -2,12 +2,7 @@
 //!
 //! cargo run --features="event-stream" --example event-stream-async-std
 
-use std::{
-    io::{stdin, stdout},
-    process::Command,
-    fs, 
-    time::Duration
-};
+use std::{fs, io::{stdin, stdout}, process::Command, str, time::Duration};
 
 use futures::{future::FutureExt, select, StreamExt};
 use futures_timer::Delay;
@@ -31,7 +26,7 @@ use crossterm::{
 //  - Use Esc to quit
 // "#;
 
-async fn print_events(mut selector_loc1:i8) {
+async fn print_events(mut selector_loc1:i8, mut location_loc1:&str) {
     let mut reader = EventStream::new();
 
     loop {
@@ -55,22 +50,38 @@ async fn print_events(mut selector_loc1:i8) {
                         if event == Event::Key(KeyCode::Char('k').into()) {
                             if selector_loc1 > 0 {
                                 selector_loc1 -= 1;
-                            }
+                            };
                             //println!("go down");
                             //println!("{}",selected)
+
                         }   else if event == Event::Key(KeyCode::Char('j').into()) {
                             selector_loc1 += 1;
                             //println!("go up");
                             //println!("{}",selected)
                         }   else if event == Event::Key(KeyCode::Char('h').into()) {
-                            println!("go left")
+
+
+                        //-----------------------------------------
+                        //-------------BackLogic-------------------
+                        //-----------------------------------------
+
+                            if location_loc1 == "./" {
+                                location_loc1 = "../"
+                            } else {
+                                location_loc1 = string_to_static_str(format!("../{}", location_loc1)) 
+                            }
+                            
+                        //------------------------------------------
+                        //------------------------------------------
+
                         }   else if event == Event::Key(KeyCode::Char('l').into()) {
-                            println!("go right")
+                            location_loc1 = "../sad"
+
                         }   if event == Event::Key(KeyCode::Esc.into()) {
                             break;
                         }
 
-                        printtype("./",selector_loc1);
+                        printtype(location_loc1,selector_loc1);
 
                     }
                     Some(Err(e)) => println!("Error: {:?}\r", e),
@@ -80,6 +91,11 @@ async fn print_events(mut selector_loc1:i8) {
         };
     }
 }
+
+fn string_to_static_str(s: String) -> &'static str {
+    Box::leak(s.into_boxed_str())
+}
+
 
 pub fn printtype(loc: &str, selector_loc2:i8) {
 
@@ -126,13 +142,13 @@ pub fn printtype(loc: &str, selector_loc2:i8) {
                     }
                     // Now let's show our entry's file type!
                     //println!("{}: {:?}", entry.path().display(), file_type);
+                    
                 } else {
                     println!("Couldn't get file type for {:?}", entry.path());
                 }
             }
         }
    }
-
 }
 
 
@@ -140,10 +156,13 @@ pub fn printtype(loc: &str, selector_loc2:i8) {
 fn main() -> Result<()> {
     print!("{esc}[2J{esc}[1;1H", esc = 27 as char);
     let selector:i8 = 0;
+    let location:&str = "./";
     printtype("./",selector);
     enable_raw_mode()?;
+    //let mut stdout = stdout();
     // execute!(stdout, EnableMouseCapture)?;
-    async_std::task::block_on(print_events(selector));
+    async_std::task::block_on(print_events(selector, location));
     // execute!(stdout, DisableMouseCapture)?;
+
     disable_raw_mode()
 }
