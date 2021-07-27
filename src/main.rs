@@ -32,7 +32,7 @@ use crossterm::{
 //  - Use Esc to quit
 // "#;
 
-async fn print_events(mut selector_loc1:i8, mut location_loc1:&str) {
+async fn print_events(mut selector_loc1:i8, mut location_loc1:PathBuf) {
     let mut reader = EventStream::new();
 
     loop {
@@ -70,12 +70,8 @@ async fn print_events(mut selector_loc1:i8, mut location_loc1:&str) {
                         //-----------------------------------------
                         //-------------BackLogic-------------------
                         //-----------------------------------------
-
-                            if location_loc1 == "./" {
-                                location_loc1 = "../"
-                            } else {
-                                location_loc1 = string_to_static_str(format!("../{}", location_loc1)) 
-                            }
+                            let mut temp =location_loc1.parent().unwrap();
+                            location_loc1.push(&temp);
                             
                         //------------------------------------------
                         //------------------------------------------
@@ -105,7 +101,7 @@ fn string_to_static_str(s: String) -> &'static str {
 
 // todo function that returns path of current selection.
 
-fn returnsel(loc2: &str,sel3:i8) -> PathBuf{
+fn returnsel(loc2: PathBuf,sel3:i8) -> PathBuf{
      let mut path_buf = PathBuf::new();
      path_buf.push(Path::new("./"));
      if let Ok(entries) = fs::read_dir(loc2) {
@@ -126,7 +122,7 @@ fn returnsel(loc2: &str,sel3:i8) -> PathBuf{
     }
     path_buf
 }
-pub fn printtype(loc: &str, selector_loc2:i8) {
+pub fn printtype(loc: PathBuf, selector_loc2:i8) {
 
     //for (i, pair) in pairs.iter().enumerate() {
     //    println!("{}: key={} value={}", i, pair.key, pair.value);
@@ -134,7 +130,7 @@ pub fn printtype(loc: &str, selector_loc2:i8) {
     let path = Path::new("../sad/src");
     println!("{}",path.canonicalize().unwrap().display());
     println!("{}",path.parent().unwrap().display());
-    println!("{}",returnsel(loc,selector_loc2).display());
+    //println!("{}",returnsel(loc,selector_loc2).display());
     
     if let Ok(entries) = fs::read_dir(&loc) {
         for (i, entry) in entries.into_iter().enumerate() {
@@ -190,13 +186,14 @@ fn main() -> Result<()> {
     let selector:i8 = 0;
     let location:&str = "./";
 
+    let mut srcdir = PathBuf::from("./");
 
     print!("{esc}[2J{esc}[1;1H", esc = 27 as char);
-    printtype("./",selector);
+    printtype(srcdir,selector);
     enable_raw_mode()?;
     //let mut stdout = stdout();
     // execute!(stdout, EnableMouseCapture)?;
-    async_std::task::block_on(print_events(selector, location));
+    async_std::task::block_on(print_events(selector, srcdir));
     // execute!(stdout, DisableMouseCapture)?;
     disable_raw_mode()
 }
