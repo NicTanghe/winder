@@ -2,7 +2,13 @@
 //!
 //! cargo run --features="event-stream" --example event-stream-async-std
 
-use std::{fs, io::{stdin, stdout}, process::Command, str, time::Duration};
+use std::{
+    fs, 
+    io::{stdin, stdout}, 
+    process::Command, str, 
+    time::Duration,
+    path::{Path, PathBuf}
+};
 
 use futures::{future::FutureExt, select, StreamExt};
 use futures_timer::Delay;
@@ -75,7 +81,7 @@ async fn print_events(mut selector_loc1:i8, mut location_loc1:&str) {
                         //------------------------------------------
 
                         }   else if event == Event::Key(KeyCode::Char('l').into()) {
-                            location_loc1 = "../sad"
+                            //go to next dir
 
                         }   if event == Event::Key(KeyCode::Esc.into()) {
                             break;
@@ -97,12 +103,39 @@ fn string_to_static_str(s: String) -> &'static str {
 }
 
 
+// todo function that returns path of current selection.
+
+fn returnsel(loc2: &str,sel3:i8) -> PathBuf{
+     let mut path_buf = PathBuf::new();
+     path_buf.push(Path::new("./"));
+     if let Ok(entries) = fs::read_dir(loc2) {
+         for (i, entry) in entries.into_iter().enumerate() {
+             if let Ok(entry) = entry {
+                 // Here, `entry` is a `DirEntry`.
+                 if let Ok(file_type) = entry.file_type() {
+                     if sel3 == i as i8 {
+                        path_buf.push( entry.path());
+
+                     // Now let's show our entry's file type!
+                     //println!("{}: {:?}", entry.path().display(), file_type);
+
+                    } 
+                }
+            }
+         }
+    }
+    path_buf
+}
 pub fn printtype(loc: &str, selector_loc2:i8) {
 
     //for (i, pair) in pairs.iter().enumerate() {
     //    println!("{}: key={} value={}", i, pair.key, pair.value);
     // }
-
+    let path = Path::new("../sad/src");
+    println!("{}",path.canonicalize().unwrap().display());
+    println!("{}",path.parent().unwrap().display());
+    println!("{}",returnsel(loc,selector_loc2).display());
+    
     if let Ok(entries) = fs::read_dir(&loc) {
         for (i, entry) in entries.into_iter().enumerate() {
             if let Ok(entry) = entry {
@@ -142,7 +175,7 @@ pub fn printtype(loc: &str, selector_loc2:i8) {
                     }
                     // Now let's show our entry's file type!
                     //println!("{}: {:?}", entry.path().display(), file_type);
-                    
+
                 } else {
                     println!("Couldn't get file type for {:?}", entry.path());
                 }
@@ -154,15 +187,16 @@ pub fn printtype(loc: &str, selector_loc2:i8) {
 
 
 fn main() -> Result<()> {
-    print!("{esc}[2J{esc}[1;1H", esc = 27 as char);
     let selector:i8 = 0;
     let location:&str = "./";
+
+
+    print!("{esc}[2J{esc}[1;1H", esc = 27 as char);
     printtype("./",selector);
     enable_raw_mode()?;
     //let mut stdout = stdout();
     // execute!(stdout, EnableMouseCapture)?;
     async_std::task::block_on(print_events(selector, location));
     // execute!(stdout, DisableMouseCapture)?;
-
     disable_raw_mode()
 }
