@@ -6,7 +6,7 @@ use std::{
     fs, 
     io::{stdin, stdout}, 
     process::Command, str, 
-    time::Duration,
+    time::Duration
     path::{Path, PathBuf}
 };
 //use async_std::path::{Path, PathBuf};
@@ -72,8 +72,9 @@ async fn print_events(mut selector_loc1:i8, location_loc1: PathBuf) {
                         //-----------------------------------------
                         //-------------BackLogic-------------------
                         //-----------------------------------------
-                            let temp = location_loc1.parent().unwrap();
-                            location_loc1.push(&temp);
+                            let test = location_loc1;
+                            let parent = location_loc1.parent().map(|p| p.to_owned()).unwrap();
+                            location_loc1.push(parent);
                             
                         //------------------------------------------
                         //------------------------------------------
@@ -124,6 +125,7 @@ fn returnsel(loc2: PathBuf,sel3:i8) -> PathBuf{
     }
     path_buf
 }
+
 pub fn printtype(loc: PathBuf, selector_loc2:i8) {
 
     //for (i, pair) in pairs.iter().enumerate() {
@@ -194,7 +196,7 @@ fn main() -> Result<()> {
     printtype(srcdir,selector);
     enable_raw_mode()?;
     //let mut stdout = stdout();
-    // execute!(stdout, EnableMouseCapture)?;
+    //execute!(stdout, EnableMouseCapture)?;
     async_std::task::block_on(print_events(selector, srcdir));
     // execute!(stdout, DisableMouseCapture)?;
     disable_raw_mode()
