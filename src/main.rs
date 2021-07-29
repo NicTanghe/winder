@@ -9,9 +9,11 @@ use std::{
     time::Duration,
     path::{Path, PathBuf}
 };
+//use async_std::path::{Path, PathBuf};
 
 use futures::{future::FutureExt, select, StreamExt};
 use futures_timer::Delay;
+
 
 use crossterm::{
     //cursor::position,
@@ -32,7 +34,7 @@ use crossterm::{
 //  - Use Esc to quit
 // "#;
 
-async fn print_events(mut selector_loc1:i8, mut location_loc1:PathBuf) {
+async fn print_events(mut selector_loc1:i8, location_loc1: PathBuf) {
     let mut reader = EventStream::new();
 
     loop {
@@ -70,7 +72,7 @@ async fn print_events(mut selector_loc1:i8, mut location_loc1:PathBuf) {
                         //-----------------------------------------
                         //-------------BackLogic-------------------
                         //-----------------------------------------
-                            let mut temp =location_loc1.parent().unwrap();
+                            let temp = location_loc1.parent().unwrap();
                             location_loc1.push(&temp);
                             
                         //------------------------------------------
