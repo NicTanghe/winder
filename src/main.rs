@@ -6,7 +6,7 @@ use std::{
     fs, 
     io::{stdin, stdout}, 
     process::Command, str, 
-    time::Duration
+    time::Duration,
     path::{Path, PathBuf}
 };
 //use async_std::path::{Path, PathBuf};
@@ -34,7 +34,7 @@ use crossterm::{
 //  - Use Esc to quit
 // "#;
 
-async fn print_events(mut selector_loc1:i8, location_loc1: PathBuf) {
+async fn print_events(mut selector_loc1:i8, mut location_loc1: PathBuf) {
     let mut reader = EventStream::new();
 
     loop {
@@ -72,8 +72,8 @@ async fn print_events(mut selector_loc1:i8, location_loc1: PathBuf) {
                         //-----------------------------------------
                         //-------------BackLogic-------------------
                         //-----------------------------------------
-                            let test = location_loc1;
-                            let parent = location_loc1.parent().map(|p| p.to_owned()).unwrap();
+                            let test = location_loc1.clone();
+                            let parent = test.parent().map(|p| p.to_owned()).unwrap();
                             location_loc1.push(parent);
                             
                         //------------------------------------------
