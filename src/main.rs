@@ -27,70 +27,54 @@ use crossterm::{
     style::{Color, Print, ResetColor, SetForegroundColor, SetBackgroundColor}
 };
 
-// const HELP: &str = r#"EventStream based on futures_util::stream::Stream with async-std
-//  - Keyboard, mouse and terminal resize events enabled
-//  - Prints "." every second if there's no event
-//  - Hit "c" to print current cursor position
-//  - Use Esc to quit
-// "#;
-
+#[cfg(debug_assertions)]
 async fn print_events(mut selector_loc1:i8, mut location_loc1: PathBuf) {
     let mut reader = EventStream::new();
 
     loop {
-        //let delay = Delay::new(Duration::from_millis(1_000)).fuse();
+
         let mut event = reader.next().fuse();
 
         select! {
-            // _ = delay => {
-            //      print!("{esc}[2J{esc}[1;1H{}", esc = 27 as char,); 
-                 
-            // },
+
             maybe_event = event => {
                 match maybe_event {
                     Some(Ok(event)) => {
-                        //println!("Event::{:?}\r", event);
-                        
-                        // if event == Event::Mouse(MouseEvent::Up("Left").into()) {
-                        //     println!("Cursor position: {:?}\r", position());
-                        // }   
+
                         print!("{esc}[2J{esc}[1;1H{}", esc = 27 as char,); 
                         if event == Event::Key(KeyCode::Char('k').into()) {
                             if selector_loc1 > 0 {
                                 selector_loc1 -= 1;
                             };
-                            //println!("go down");
-                            //println!("{}",selected)
 
-                        }   else if event == Event::Key(KeyCode::Char('j').into()) {
+                        } else if event == Event::Key(KeyCode::Char('j').into()) {
                             selector_loc1 += 1;
-                            //println!("go up");
-                            //println!("{}",selected)
-                        }   else if event == Event::Key(KeyCode::Char('h').into()) {
 
+                        } else if event == Event::Key(KeyCode::Char('h').into()) {
 
-                        //-----------------------------------------
-                        //-------------BackLogic-------------------
-                        //-----------------------------------------
-                            let parent = location_loc1.parent().map(|p| p.to_owned()).unwrap();
-                            location_loc1.push(parent);
+                            //-------------BackLogic-----------------
+                            let mut root = PathBuf::new();
+                            root.push(Path::new("o:/").canonicalize().unwrap());
                             
-                        //------------------------------------------
-                        //------------------------------------------
+                            if location_loc1 != root{
+                                location_loc1 = location_loc1.parent().map(|p| p.to_owned()).unwrap();
+                            selector_loc1 = 0;
+                            }
 
-                        }   else if event == Event::Key(KeyCode::Char('l').into()) {
-                            //go to next dir
+                            
+                            
+                        } else if event == Event::Key(KeyCode::Char('l').into()) {
 
+                            //------go to next dir------
+                            
+                                let add = returnsel(&location_loc1,selector_loc1);
+                                location_loc1.push(add);
+                                selector_loc1 = 0;
+                                                        
                         }   if event == Event::Key(KeyCode::Esc.into()) {
                             break;
                         }
-                        execute!(
-                            stdout(),
-                            SetForegroundColor(Color::Cyan),
-                            Print(format!(" {} \n", &location_loc1.display())),
-                            ResetColor
-                        )
-                        .unwrap();
+
                         printtype(&location_loc1,selector_loc1);
 
                     }
@@ -101,6 +85,7 @@ async fn print_events(mut selector_loc1:i8, mut location_loc1: PathBuf) {
         };
     }
 }
+
 
 fn string_to_static_str(s: String) -> &'static str {
     Box::leak(s.into_boxed_str())
@@ -130,14 +115,18 @@ fn returnsel(loc2: &PathBuf,sel3:i8) -> PathBuf{
     }
     path_buf
 }
-
+fn rem_first_and_last(value: &str) -> &str {
+    let mut chars = value.chars();
+    chars.next();
+    chars.next_back();
+    chars.as_str()
+}
 pub fn printtype(loc: &PathBuf, selector_loc2: i8) {
     //for (i, pair) in pairs.iter().enumerate() {
     //    println!("{}: key={} value={}", i, pair.key, pair.value);
     // }
-    let path = Path::new("../sad/src");
-    println!("{}", path.canonicalize().unwrap().display());
-    println!("{}", path.parent().unwrap().display());
+
+    println!("{}", loc.display());
     //println!("{}",returnsel(loc,selector_loc2).display());
  
     if let Ok(entries) = fs::read_dir(&loc) {
@@ -152,7 +141,7 @@ pub fn printtype(loc: &PathBuf, selector_loc2: i8) {
                         execute!(
                             stdout(),
                             SetForegroundColor(Color::Blue),
-                            Print(format!("{}: {} \n", i, entry.path().display())),
+                            Print(format!("{} \n",entry.file_name().to_string_lossy())),
                             ResetColor
                         )
                         .unwrap();
@@ -160,7 +149,7 @@ pub fn printtype(loc: &PathBuf, selector_loc2: i8) {
                         execute!(
                             stdout(),
                             SetForegroundColor(Color::Reset),
-                            Print(format!("{}: {} \n", i, entry.path().display())),
+                            Print(format!("{}\n" ,entry.file_name().to_string_lossy())),
                             ResetColor
                         )
                         .unwrap();
@@ -168,7 +157,8 @@ pub fn printtype(loc: &PathBuf, selector_loc2: i8) {
                         execute!(
                             stdout(),
                             SetForegroundColor(Color::Cyan),
-                            Print(format!("{}: {} \n", i, entry.path().display())),
+                            Print(format!("{} \n",  entry.file_name().to_string_lossy())),
+                            
                             ResetColor
                         )
                         .unwrap();
@@ -185,9 +175,10 @@ pub fn printtype(loc: &PathBuf, selector_loc2: i8) {
 
 fn main() -> Result<()> {
     let selector:i8 = 0;
-    let location:&str = "./src";
 
-    let mut srcdir = PathBuf::from("./src");
+
+    let mut srcdir = PathBuf::from("./").canonicalize().unwrap();
+
 
     print!("{esc}[2J{esc}[1;1H", esc = 27 as char);
     printtype(&srcdir,selector);
