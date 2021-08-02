@@ -71,7 +71,11 @@ async fn print_events(mut selector_loc1:i8, mut location_loc1: PathBuf) {
                                 location_loc1.push(add);
                                 selector_loc1 = 0;
                                                         
-                        }   if event == Event::Key(KeyCode::Esc.into()) {
+                        } else if event == Event::Key(KeyCode::Enter.into()) {
+                            openf(returnsel(&location_loc1,selector_loc1))
+                        }
+                        
+                        if event == Event::Key(KeyCode::Esc.into()) {
                             break;
                         }
 
@@ -81,7 +85,7 @@ async fn print_events(mut selector_loc1:i8, mut location_loc1: PathBuf) {
                     Some(Err(e)) => println!("Error: {:?}\r", e),
                     None => break,
                 }
-            }
+            } 
         };
     }
 }
@@ -115,12 +119,7 @@ fn returnsel(loc2: &PathBuf,sel3:i8) -> PathBuf{
     }
     path_buf
 }
-fn rem_first_and_last(value: &str) -> &str {
-    let mut chars = value.chars();
-    chars.next();
-    chars.next_back();
-    chars.as_str()
-}
+
 pub fn printtype(loc: &PathBuf, selector_loc2: i8) {
     //for (i, pair) in pairs.iter().enumerate() {
     //    println!("{}: key={} value={}", i, pair.key, pair.value);
@@ -188,4 +187,20 @@ fn main() -> Result<()> {
     async_std::task::block_on(print_events(selector, srcdir));
     // execute!(stdout, DisableMouseCapture)?;
     disable_raw_mode()
+}
+
+fn openf( loc3 : PathBuf) 
+{
+    if cfg!(target_os = "windows") {
+        Command::new(loc3)
+                .args(&["/C", "echo hello"])
+                .output()
+                .expect("failed to execute process")
+    } else {
+        Command::new("sh")
+                .arg("-c")
+                .arg("echo hello")
+                .output()
+                .expect("failed to execute process")
+    };
 }
