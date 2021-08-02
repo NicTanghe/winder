@@ -72,7 +72,8 @@ async fn print_events(mut selector_loc1:i8, mut location_loc1: PathBuf) {
                                 selector_loc1 = 0;
                                                         
                         } else if event == Event::Key(KeyCode::Enter.into()) {
-                            openf(returnsel(&location_loc1,selector_loc1))
+                            // openf(returnsel(&location_loc1,selector_loc1));
+                            opentest();
                         }
                         
                         if event == Event::Key(KeyCode::Esc.into()) {
@@ -126,6 +127,7 @@ pub fn printtype(loc: &PathBuf, selector_loc2: i8) {
     // }
 
     println!("{}", loc.display());
+    println!("{\n}", loc.strip_prefix(r"\?\").unwrap().display());
     //println!("{}",returnsel(loc,selector_loc2).display());
  
     if let Ok(entries) = fs::read_dir(&loc) {
@@ -176,8 +178,8 @@ fn main() -> Result<()> {
     let selector:i8 = 0;
 
 
-    let mut srcdir = PathBuf::from("./").canonicalize().unwrap();
-
+    let srcdir = PathBuf::from("./").canonicalize().unwrap();
+    
 
     print!("{esc}[2J{esc}[1;1H", esc = 27 as char);
     printtype(&srcdir,selector);
@@ -193,7 +195,23 @@ fn openf( loc3 : PathBuf)
 {
     if cfg!(target_os = "windows") {
         Command::new(loc3)
-                .args(&["/C", "echo hello"])
+
+                .output()
+                .expect("failed to execute process")
+    } else {
+        Command::new("sh")
+                .arg("-c")
+                .arg("echo hello")
+                .output()
+                .expect("failed to execute process")
+    };
+}
+
+fn opentest() {
+    let patharoon = PathBuf::from("C:/Program Files/PowerToys/PowerToys.exe");
+    let test = patharoon.as_os_str();
+    if cfg!(target_os = "windows") {
+        Command::new(test)
                 .output()
                 .expect("failed to execute process")
     } else {
