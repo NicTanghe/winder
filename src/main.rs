@@ -7,6 +7,7 @@ use std::{
     io::{stdin, stdout}, 
     process::Command, str, 
     time::Duration,
+    env,
     path::{Path, PathBuf}
 };
 //use async_std::path::{Path, PathBuf};
@@ -54,7 +55,7 @@ async fn print_events(mut selector_loc1:i8, mut location_loc1: PathBuf) {
 
                             //-------------BackLogic-----------------
                             let mut root = PathBuf::new();
-                            root.push(Path::new("o:/").canonicalize().unwrap());
+                            root.push(Path::new("o:/"));
                             
                             if location_loc1 != root{
                                 location_loc1 = location_loc1.parent().map(|p| p.to_owned()).unwrap();
@@ -72,8 +73,8 @@ async fn print_events(mut selector_loc1:i8, mut location_loc1: PathBuf) {
                                 selector_loc1 = 0;
                                                         
                         } else if event == Event::Key(KeyCode::Enter.into()) {
-                            // openf(returnsel(&location_loc1,selector_loc1));
-                            opentest();
+                            openf(returnsel(&location_loc1,selector_loc1));
+                            //opentest();
                         }
                         
                         if event == Event::Key(KeyCode::Esc.into()) {
@@ -127,7 +128,7 @@ pub fn printtype(loc: &PathBuf, selector_loc2: i8) {
     // }
 
     println!("{}", loc.display());
-    println!("{\n}", loc.strip_prefix(r"\?\").unwrap().display());
+    //println!("{\n}", loc.strip_prefix(r"\?\").unwrap().display());
     //println!("{}",returnsel(loc,selector_loc2).display());
  
     if let Ok(entries) = fs::read_dir(&loc) {
@@ -178,7 +179,7 @@ fn main() -> Result<()> {
     let selector:i8 = 0;
 
 
-    let srcdir = PathBuf::from("./").canonicalize().unwrap();
+    let srcdir = env::current_dir()?;
     
 
     print!("{esc}[2J{esc}[1;1H", esc = 27 as char);
@@ -194,8 +195,7 @@ fn main() -> Result<()> {
 fn openf( loc3 : PathBuf) 
 {
     if cfg!(target_os = "windows") {
-        Command::new(loc3)
-
+        Command::new(loc3.as_os_str())
                 .output()
                 .expect("failed to execute process")
     } else {
@@ -222,3 +222,50 @@ fn opentest() {
                 .expect("failed to execute process")
     };
 }
+
+
+// placera suggestion
+// fn open_file_browser() {
+//     let mut dir = std::env::current_dir();
+//     for event in input_events {
+//         match event {
+//             GoToParent => dir = match dir.parent() {
+//                 Some(d) => d.to_owned(),
+//                 None => dir,
+//             }
+//             GoToChild(child_name) => dir = dir.join(child_name)
+//             CreateFile(file_name) => fs::write(dir.join(file_name), b"nothing much")
+//         }
+//     }
+// }
+
+// strip from cananicalised path
+// use std::path::*;
+// fn remove_verbatim_disk(path: PathBuf) -> PathBuf {
+//     let mut components = path.components();
+//     if let Some(n) = components.next().and_then(|c| match c {
+//         std::path::Component::Prefix(prefix) => Some(prefix),
+//         _ => None
+//     }).and_then(|p| match p.kind() {
+//         std::path::Prefix::VerbatimDisk(n) => Some(n),
+//         _ => None
+//     }) {
+//         std::path::PathBuf::from(format!("{}:\\", n as char)).join(components.as_path())
+//     } else {
+//         path
+//     }
+// }
+
+// use object::read::*;
+// use pe::{ImageNtHeaders, ImageOptionalHeader};
+// let reader = ReadCache::new(std::fs::File::open(path_to_exe)?);
+// let subsystem = match FileKind::parse(&reader)? {
+//     FileKind::Pe32 => pe::PeFile32::parse(reader)?.nt_headers().optional_header().subsystem(),
+//     FileKind::Pe64 => pe::PeFile64::parse(reader)?.nt_headers().optional_header().subsystem(),
+//     _ => todo!("it's not an exe")
+// };
+// if subsystem == object::pe::IMAGE_SUBSYSTEM_WINDOWS_GUI {
+//     // its a gui
+// } else {
+//     // its a cui
+// }
